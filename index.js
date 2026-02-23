@@ -1,43 +1,9 @@
-const express = require('express')
-const mongoose = require('mongoose')
-require('dotenv').config()
+const app = require('./app')
+const logger = require('./utils/logger')
+const config = require('./utils/config')
 
-const app = express()
+const PORT = config.PORT
 
-const blogSchema = mongoose.Schema({
-  title: String,
-  author: String,
-  url: String,
-  likes: Number,
-})
-
-const Blog = mongoose.model('Blog', blogSchema)
-
-const mongoUrl = process.env.MONGODB_URL
-mongoose.connect(mongoUrl, { family: 4 })
-  .then((() => {
-    console.log('connected to database')
-  }))
-  .catch(() => {
-    console.log('error connnecting to dbase')
-  })
-app.use(express.json())
-
-app.get('/api/blogs', (request, response) => {
-  Blog.find({}).then((blogs) => {
-    response.json(blogs)
-  })
-})
-
-app.post('/api/blogs', (request, response) => {
-  const blog = new Blog(request.body)
-
-  blog.save().then((result) => {
-    response.status(201).json(result)
-  })
-})
-
-const PORT = process.env.PORT
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+  logger.info(`Server running on port ${PORT}`)
 })
