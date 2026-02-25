@@ -1,6 +1,5 @@
 const blogListRouter = require('express').Router()
 const Blog = require('../models/blogList')
-const logger = require('../utils/logger')
 
 blogListRouter.get('/', async (request, response) => {
   const blogList = await Blog.find({})
@@ -9,7 +8,7 @@ blogListRouter.get('/', async (request, response) => {
 
 blogListRouter.post('/', async (request, response) => {
   if (!request.body){
-    response.status(400).json({error: 'content missing'})
+    response.status(400).json({ error: 'content missing' })
   }
   const blog = new Blog(request.body)
 
