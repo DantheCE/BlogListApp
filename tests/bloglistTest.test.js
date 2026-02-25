@@ -29,7 +29,45 @@ describe('GET endpoint',  () => {
   )
 })
 
+describe('unique identifier format validation', () => {
+  test('.id and not ._id is present', () => {
+    const savedBlogs = testHelper.getAllBlogsDb()
+    assert(savedBlogs.id)
+  })
+})
 
+describe('POST endpoint', () => {
+  test('succeeds with valid data', async () => {
+    const newBlogs = {
+      title: 'this is a new blog post',
+      author: 'Daniel F',
+      url: 'http://example.com',
+      likes: 5
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlogs)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    const savedBlogs = await testHelper.getAllBlogsDb()
+    const content = savedBlogs.map(b => b.title)
+    assert(content.includes('this is a new blog post'))
+  })
+
+  test('fail with 400 if data is invalid', async () => {
+    const newNote = { title: test }
+
+    await api
+      .post('/api/blogs')
+      .send(newNote)
+      .expect(400)
+
+    const savedBlogs = await testHelper.getAllBlogsDb()
+    assert.strictEqual(savedBlogs.length, testHelper.listWithMultipleBlogs.length)
+  })
+})
 describe('total likes', () => {
   const listWithOneBlog = [
     {
