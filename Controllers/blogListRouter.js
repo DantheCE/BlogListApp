@@ -2,19 +2,19 @@ const blogListRouter = require('express').Router()
 const Blog = require('../models/blogList')
 const logger = require('../utils/logger')
 
-blogListRouter.get('/', (request, response) => {
-  Blog.find({}).then((blogs) => {
-    response.json(blogs)
-  })
+blogListRouter.get('/', async (request, response) => {
+  const blogList = await Blog.find({})
+  response.status(200).json(blogList)
 })
 
-blogListRouter.post('/', (request, response) => {
-  logger.info('request', request.body)
+blogListRouter.post('/', async (request, response) => {
+  if (!request.body){
+    response.status(400).json({error: 'content missing'})
+  }
   const blog = new Blog(request.body)
 
-  blog.save().then((result) => {
-    response.status(201).json(result)
-  })
+  const savedBlog = await blog.save()
+  response.status(201).json(savedBlog)
 })
 
 module.exports = blogListRouter
