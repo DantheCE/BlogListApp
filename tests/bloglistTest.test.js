@@ -71,7 +71,7 @@ describe('POST endpoint', () => {
     assert.strictEqual(savedBlogs.length, testHelper.listWithMultipleBlogs.length)
   })
 
-  test.only('likes default to zero if they don\'t exist', async () => {
+  test('likes default to zero if they don\'t exist', async () => {
     const newNote = { title: 'test', url: 'google.com' }
 
     const result = await api
@@ -84,6 +84,62 @@ describe('POST endpoint', () => {
     const savedBlogs = await testHelper.getAllBlogsDb()
     const saved = savedBlogs.find(b => b.id === result.body.id)
     assert.strictEqual(saved.likes, 0)
+  })
+})
+
+describe('DELETE endpoint', () => {
+  test('succeeds with 204 if id is valid', async () => {
+    const blogsAtStart = await testHelper.getAllBlogsDb()
+    const blogToDelete = blogsAtStart[0]
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
+
+    const blogsAtEnd = await testHelper.getAllBlogsDb()
+    assert.strictEqual(blogsAtEnd.length, blogsAtStart.length - 1)
+
+    const ids = blogsAtEnd.map(b => b.id)
+    assert(!ids.includes(blogToDelete.id))
+  })
+
+  test('fails with 404 if blog does not exist', async () => {
+    const nonExistentId = testHelper.getUniqueId()
+
+    await api
+      .delete(`/api/blogs/${nonExistentId}`)
+      .expect(404)
+  })
+})
+
+describe('PUT endpoint', () => {
+  test('succeeds with 200 and updates the number of likes', async () => {
+    const blogsAtStart = await testHelper.getAllBlogsDb()
+    const blogToUpdate = blogsAtStart[0]
+
+    const updatedData = { ...blogToUpdate, likes: blogToUpdate.likes + 10 }
+
+    const result = await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedData)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    assert.strictEqual(result.body.likes, blogToUpdate.likes + 10)
+
+    // Confirm the change is persisted in the DB
+    const blogsAtEnd = await testHelper.getAllBlogsDb()
+    const updated = blogsAtEnd.find(b => b.id === blogToUpdate.id)
+    assert.strictEqual(updated.likes, blogToUpdate.likes + 10)
+  })
+
+  test('fails with 404 if blog does not exist', async () => {
+    const nonExistentId = testHelper.getUniqueId()
+
+    await api
+      .put(`/api/blogs/${nonExistentId}`)
+      .send({ likes: 99 })
+      .expect(404)
   })
 })
 

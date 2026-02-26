@@ -12,9 +12,9 @@ const mongoUrl = config.MONGODB_URL
 // logger.info('connecting to', mongoUrl)
 
 mongoose.connect(mongoUrl, { family: 4 })
-  .then((() => {
+  .then(() => {
     logger.info('connected to database')
-  }))
+  })
   .catch(() => {
     logger.error('error connnecting to dbase')
   })

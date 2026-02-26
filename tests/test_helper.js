@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const Blog = require('../models/blogList')
 
 const listWithMultipleBlogs = [
@@ -57,11 +58,8 @@ const getAllBlogsDb = async () => {
   return (blogs.map(n => n.toJSON()))
 }
 
-const getUniqueId =  async () => {
-  const tempBlog = new Blog({ title: 'dontcare' })
-  await tempBlog.save()
-  await tempBlog.deleteOne()
-  return tempBlog._id
+const getUniqueId = () => {
+  return new mongoose.Types.ObjectId()
 }
 
 module.exports = { getAllBlogsDb, listWithMultipleBlogs, getUniqueId }
