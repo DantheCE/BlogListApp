@@ -11,13 +11,14 @@ const mostBlogs = require('../utils/list_helper').mostBlogs
 const mostLikes = require('../utils/list_helper').mostLikes
 
 const api = supertest(app)
+
 beforeEach(async () => {
   await Blog.deleteMany({})
   await Blog.insertMany(testHelper.listWithMultipleBlogs)
 })
 
-describe('GET endpoint',  () => {
-  test('notes are returned successfully and in the right format' , async () => {
+describe('GET endpoint', () => {
+  test('notes are returned successfully and in the right format', async () => {
     const results = await api
       .get('/api/blogs')
       .expect(200)
@@ -30,9 +31,10 @@ describe('GET endpoint',  () => {
 })
 
 describe('unique identifier format validation', () => {
-  test('.id and not ._id is present', () => {
-    const savedBlogs = testHelper.getAllBlogsDb()
-    assert(savedBlogs.id)
+  test('.id and not ._id is present', async () => {
+    const savedBlogs = await testHelper.getAllBlogsDb()
+    console.log(savedBlogs)
+    assert(savedBlogs[0].id)
   })
 })
 
@@ -54,10 +56,11 @@ describe('POST endpoint', () => {
     const savedBlogs = await testHelper.getAllBlogsDb()
     const content = savedBlogs.map(b => b.title)
     assert(content.includes('this is a new blog post'))
+    assert(savedBlogs.length, testHelper.listWithMultipleBlogs + 1)
   })
 
   test('fail with 400 if data is invalid', async () => {
-    const newNote = { title: test }
+    const newNote = { title: 'test' }
 
     await api
       .post('/api/blogs')
@@ -67,7 +70,23 @@ describe('POST endpoint', () => {
     const savedBlogs = await testHelper.getAllBlogsDb()
     assert.strictEqual(savedBlogs.length, testHelper.listWithMultipleBlogs.length)
   })
+
+  test.only('likes default to zero if they don\'t exist', async () => {
+    const newNote = { title: 'test', url: 'google.com' }
+
+    const result = await api
+      .post('/api/blogs')
+      .send(newNote)
+      .expect(201)
+
+    assert.strictEqual(result.body.likes, 0)
+
+    const savedBlogs = await testHelper.getAllBlogsDb()
+    const saved = savedBlogs.find(b => b.id === result.body.id)
+    assert.strictEqual(saved.likes, 0)
+  })
 })
+
 describe('total likes', () => {
   const listWithOneBlog = [
     {
